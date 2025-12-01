@@ -17,7 +17,7 @@ default_args = {
 }
 
 dag = DAG(
-    "orders_db_transfer_ziad",
+    "orders_db_transfer_abdelrahman",
     default_args=default_args,
     description="Transfer data from orders PostgreSQL to GCS and load into BigQuery",
     schedule_interval=None,
