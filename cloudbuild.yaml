@@ -64,3 +64,6 @@ steps:
       echo ">>> Deployment to Cloud Composer bucket completed."
 
 timeout: "1200s"
+options:
+  logging: CLOUD_LOGGING_ONLY
+
