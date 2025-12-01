@@ -1,0 +1,66 @@
+# ============================
+# Cloud Build: Deploy DAGs to Cloud Composer
+# ============================
+
+# Use substitution for the Composer bucket so you don't hardcode it.
+substitutions:
+  _COMPOSER_BUCKET: "your-composer-bucket"
+
+steps:
+
+# ----------------------------
+# 1) Sync DAGs folder
+# ----------------------------
+- name: "gcr.io/cloud-builders/gsutil"
+  entrypoint: "bash"
+  args:
+    - "-c"
+    - |
+      echo ">>> Syncing DAGs to Composer bucket..."
+      if [ -d "./dags" ]; then
+        gsutil -m rsync -r ./dags gs://${_COMPOSER_BUCKET}/dags
+      else
+        echo "No dags/ folder found. Skipping."
+      fi
+
+# ----------------------------
+# 2) Sync plugins folder (optional)
+# ----------------------------
+# - name: "gcr.io/cloud-builders/gsutil"
+#   entrypoint: "bash"
+#   args:
+#     - "-c"
+#     - |
+#       echo ">>> Syncing plugins to Composer bucket..."
+#       if [ -d "./plugins" ]; then
+#         gsutil -m rsync -r ./plugins gs://${_COMPOSER_BUCKET}/plugins
+#       else
+#         echo "No plugins/ folder found. Skipping."
+#       fi
+
+# ----------------------------
+# 3) Upload requirements.txt (optional)
+# ----------------------------
+# - name: "gcr.io/cloud-builders/gsutil"
+#   entrypoint: "bash"
+#   args:
+#     - "-c"
+#     - |
+#       echo ">>> Uploading requirements.txt..."
+#       if [ -f "./requirements.txt" ]; then
+#         gsutil cp ./requirements.txt gs://${_COMPOSER_BUCKET}/requirements.txt
+#       else
+#         echo "No requirements.txt found. Skipping."
+#       fi
+
+# ----------------------------
+# 4) (Optional) Log done
+# ----------------------------
+- name: "gcr.io/cloud-builders/gcloud"
+  entrypoint: "bash"
+  args:
+    - "-c"
+    - |
+      echo ">>> Deployment to Cloud Composer bucket completed."
+
+timeout: "1200s"
