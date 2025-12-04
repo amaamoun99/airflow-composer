@@ -11,7 +11,7 @@ def error_task():
     logging.critical("This is a critical message from the error_task.") 
 
 with DAG(
-    dag_id="example_airflow_dag_abdelrahman",
+    dag_id="hello_dag_abdelrahman",
     schedule=None,
     start_date=datetime(2025, 5, 15),
     catchup=False,
