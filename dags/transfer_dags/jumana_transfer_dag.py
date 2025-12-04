@@ -4,7 +4,7 @@ from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQue
 from airflow.utils.dates import days_ago
 
 with DAG(
-    dag_id="postgres_to_bq_order",
+    dag_id="postgres_to_bq_order_juamana",
     start_date=days_ago(1),
     schedule_interval="@daily"
 ):
