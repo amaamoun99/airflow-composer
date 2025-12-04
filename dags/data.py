@@ -19,7 +19,7 @@ GCS_PATH = f"landing/{FILENAME}"
 def extract_from_postgres():
     """Extract data from Postgres and save it as CSV."""
     pg_hook = PostgresHook(postgres_conn_id=POSTGRES_CONN_ID)
-    sql = "SELECT * FROM your_table_name;"   # 🔥 Change table name here
+    sql = "SELECT * FROM 'Order'"   # 🔥 Change table name here
 
     df = pg_hook.get_pandas_df(sql)
     df.to_csv(LOCAL_PATH, index=False)
