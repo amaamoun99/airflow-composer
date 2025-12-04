@@ -23,7 +23,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id="example_log_errors",
+    dag_id="sama_log_errors",
     start_date=datetime(2024, 1, 1),
     schedule_interval="@daily",
     default_args=default_args,
