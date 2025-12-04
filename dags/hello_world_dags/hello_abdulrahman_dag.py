@@ -3,26 +3,32 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime
 import logging
 
-def force_failure_function():
-    logging.info("Task started. Preparing to fail...")
-    
-    # This creates a log entry
-    logging.error("An error condition was detected!")
-    
-    # CRITICAL: This line actually tells Airflow the task FAILED
-    raise ValueError("Stopping execution: This task is designed to fail.")
+def safe_function():
+    try:
+        logging.info("Task started. Trying to do something dangerous...")
+        
+        # 1. We deliberately cause an error here
+        raise ValueError("Something went wrong with the calculation!")
+        
+        # This line will never be reached
+        logging.info("This will never print.")
+
+    except ValueError as e:
+        # 2. We CATCH the error here instead of letting it crash
+        logging.error(f"Caught an error: {e}")
+        logging.info("Handling the error gracefully... keeping the task Green.")
 
 with DAG(
-    dag_id="abdulrahman_error_dag",
+    dag_id="safe_handled_dag",
     schedule=None,
     start_date=datetime(2025, 5, 15),
     catchup=False,
-    tags=["test", "error"],
+    tags=["test", "handled"],
 ) as dag:
     
-    fail_task = PythonOperator(
-        task_id="force_fail_task",
-        python_callable=force_failure_function,
+    safe_task = PythonOperator(
+        task_id="handled_error_task",
+        python_callable=safe_function,
     )
 
-    fail_task
+    safe_task
