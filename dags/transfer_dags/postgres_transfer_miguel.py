@@ -5,7 +5,11 @@ from datetime import datetime
 
 PROJECT_ID = "applai-dwh"
 BUCKET_NAME = "db-to-datalake"
-DATASET = "applai-dwh.airflow_landing"
+
+# ⚠️ BigQuery dataset ONLY (no project here)
+DATASET = "airflow_landing"
+
+# ⚠️ Avoid reserved keywords → quote properly
 TABLE = "Order"
 
 with DAG(
@@ -16,24 +20,28 @@ with DAG(
     tags=["postgres", "bigquery", "etl"],
 ) as dag:
 
-    # 1️⃣ Postgres → GCS
     postgres_to_gcs = PostgresToGCSOperator(
         task_id="postgres_to_gcs",
         postgres_conn_id="applai_postgres_db",
-        sql=f"SELECT * FROM '{TABLE}'",
+        # ✅ FIX: correct SQL quoting
+        sql=f'SELECT * FROM "{TABLE}"',
         bucket=BUCKET_NAME,
         filename="postgres_export/{{ ds }}/data.json",
         export_format="json",
     )
 
-    # 2️⃣ GCS → BigQuery
     gcs_to_bigquery = GCSToBigQueryOperator(
         task_id="gcs_to_bigquery",
         bucket=BUCKET_NAME,
         source_objects=["postgres_export/{{ ds }}/data.json"],
+        # ✅ FIX: correct project.dataset.table format
         destination_project_dataset_table=f"{PROJECT_ID}.{DATASET}.{TABLE}_miguel",
-        write_disposition="WRITE_TRUNCATE",  # or WRITE_APPEND
+        source_format="NEWLINE_DELIMITED_JSON",
+        write_disposition="WRITE_TRUNCATE",
+        create_disposition="CREATE_IF_NEEDED",
         autodetect=True,
+        bigquery_conn_id="google_cloud_default",
+        google_cloud_storage_conn_id="google_cloud_default",
     )
 
     postgres_to_gcs >> gcs_to_bigquery
