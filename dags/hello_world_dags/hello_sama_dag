@@ -1,0 +1,36 @@
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime, timedelta
+import logging
+
+
+def task_with_error():
+    logger = logging.getLogger("airflow.task")
+
+    try:
+        # simulate failing code
+        result = 10 / 0
+        return result
+    except Exception as e:
+        logger.error(f"❌ Error occurred: {e}", exc_info=True)
+        raise  # re-raise so the task fails
+
+
+default_args = {
+    "owner": "airflow",
+    "retries": 1,
+    "retry_delay": timedelta(minutes=1),
+}
+
+with DAG(
+    dag_id="sama_log_errors",
+    start_date=datetime(2024, 1, 1),
+    schedule_interval="@daily",
+    default_args=default_args,
+    catchup=False,
+) as dag:
+
+    log_error_task = PythonOperator(
+        task_id="log_error_task",
+        python_callable=task_with_error,
+    )
