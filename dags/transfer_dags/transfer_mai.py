@@ -28,3 +28,5 @@ with DAG(
     )
 
     export_from_postgres >> load_to_bigquery
+
+
