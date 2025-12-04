@@ -1,27 +1,30 @@
 from airflow import DAG
-from airflow.operators.python import PythonOperator
-from datetime import datetime
-import logging
-
-def error_task_jumana():
-    print("hello_world")
-    logging.error("This is an error message from Jumana's error task.")
-    logging.info("This is an info message from Jumana's error task.")
-    logging.warning("This is a warning message from Jumana's error task.")
-    logging.debug("This is a debug message from Jumana's error task.")
-    logging.critical("This is a critical message from Jumana's error task.")
+from airflow.providers.google.cloud.transfers.postgres_to_gcs import PostgresToGCSOperator
+from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
+from airflow.utils.dates import days_ago
 
 with DAG(
-    dag_id="hello_dag_jumana",
-    schedule=None,
-    start_date=datetime(2025, 5, 15),
-    catchup=False,
-    tags=["example", "jumana"],
-) as dag:
-    
-    jumana_error_task = PythonOperator(
-        task_id="jumana_error_task",
-        python_callable=error_task_jumana,
+    dag_id="postgres_to_bq_order",
+    start_date=days_ago(1),
+    schedule_interval="@daily"
+):
+
+    export_from_postgres = PostgresToGCSOperator(
+        task_id="export_postgres_to_gcs",
+        postgres_conn_id="applai_postgres_db",
+        sql="SELECT * FROM public.order;",
+        bucket="db-to-datalake",
+        filename="order/order_{{ ds }}.json",
+        export_format="json"
     )
 
-    jumana_error_task
+    load_to_bigquery = GCSToBigQueryOperator(
+        task_id="load_to_bigquery",
+        bucket="db-to-datalake",
+        source_objects=["order/order_{{ ds }}.json"],
+        destination_project_dataset_table="applai_dwh.airflow_landing.Order",
+        source_format="NEWLINE_DELIMITED_JSON",
+        write_disposition="WRITE_APPEND"
+    )
+
+    export_from_postgres >> load_to_bigquery
