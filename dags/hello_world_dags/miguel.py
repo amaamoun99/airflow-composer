@@ -14,5 +14,5 @@ with DAG(
 
     hello_task = PythonOperator(
         task_id="hello_world_task",
-        python_callable=hello_world,
+        python_callable=hello_world_miguel,
     )
